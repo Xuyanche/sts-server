@@ -48,8 +48,10 @@ public class FundController {
     public String createAccount(@RequestBody String data) {
         data = data.substring(1, data.length()-1).replace("\\", "");
         FundAccount account = gson.fromJson(data, FundAccount.class);
+        
         return new CustomResponse(new Result(true),
-                fundAccountService.createAccount(account)).toString();
+                 fundAccountService.createAccount(account)).toString();       
+       
         // TODO 失败判断
     }
    
@@ -81,7 +83,12 @@ public class FundController {
     @ResponseBody
     public String changePassword(@PathVariable String fundId, @PathVariable String newPassword) {
         fundAccountService.changePassword(Integer.valueOf(fundId), newPassword);
-        return new CustomResponse(new Result(true)).toString();
+        if(AccountState(Integer.valueOf(fundId))) {
+        	 return new CustomResponse(new Result(true)).toString();
+        }
+        else 
+        	return new CustomResponse(new Result(false), "Account is unavaliable").toString();
+       
         // TODO 失败判断
     }
 
@@ -108,8 +115,9 @@ public class FundController {
     @RequestMapping(value = "/fund/change/state/{fundId}", method = POST)
     @ResponseBody
     public String changeState(@PathVariable String fundId) {
-        fundAccountService.changeState(Integer.valueOf(fundId));
-        return new CustomResponse(new Result(true)).toString();
+        
+    	fundAccountService.changeState(Integer.valueOf(fundId));
+        return new CustomResponse(new Result(true),AccountState(Integer.valueOf(fundId))).toString();
         // TODO 失败判断
     }
 
@@ -122,8 +130,9 @@ public class FundController {
     @RequestMapping(value = "/fund/{fundId}", method = GET)
     @ResponseBody
     public String fetchAccount(@PathVariable String fundId) {
-        return new CustomResponse(new Result(true),
-                fundAccountService.fetchAccount(Integer.valueOf(fundId))).toString();
+    	
+    		return new CustomResponse(new Result(true),
+                    fundAccountService.fetchAccount(Integer.valueOf(fundId))).toString();
         // TODO 失败判断
     }
 
@@ -157,12 +166,21 @@ public class FundController {
     @RequestMapping(value = "/fund/transfer/", method = POST)
     @ResponseBody
     public String transfer(@RequestBody String data) {
-        data = data.substring(1, data.length()-1).replace("\\", "");
+       
+    	data = data.substring(1, data.length()-1).replace("\\", "");
         TransactionLog log = gson.fromJson(data, TransactionLog.class);
+        
+        if(AccountState(log.getFundId())) {
+        	return new CustomResponse(new Result(false),"Account is unavaliable").toString();
+        }
         fundAccountService.updateBalance(log.getFundId(), log.getChangeAmount());
         transactionLogService.addLog(log);
         return new CustomResponse(new Result(true)).toString();
         // TODO 失败判断
+    }
+    
+    private boolean AccountState(int FundID) {
+    	return fundAccountService.fetchAccount(FundID).isState();
     }
 
 }

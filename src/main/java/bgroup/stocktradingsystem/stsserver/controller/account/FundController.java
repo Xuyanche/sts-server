@@ -52,6 +52,23 @@ public class FundController {
                 fundAccountService.createAccount(account)).toString();
         // TODO 失败判断
     }
+   
+    
+    /**
+     * 资金账户登录
+     *
+     * @param data 待新建的资金账户
+     * @return 成功或失败原因
+     */
+    @RequestMapping(value = "/fund/login/{userID}/{password}", method = GET)
+    @ResponseBody
+    public String login(@RequestBody String data) {
+        data = data.substring(1, data.length()-1).replace("\\", "");
+        FundAccount account = gson.fromJson(data, FundAccount.class);
+        return new CustomResponse(new Result(true),
+                fundAccountService.createAccount(account)).toString();
+        // TODO 失败判断
+    }
 
     /**
      * 修改资金账户密码
@@ -123,6 +140,7 @@ public class FundController {
         return new CustomResponse(new Result(true)).toString();
         // TODO 失败判断
     }
+    
 
     /**
      * 完成交易。
